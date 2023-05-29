@@ -21,7 +21,9 @@ app.use(express.json());
 app.use(cors());
 
 io.on("connection", (socket) => {
-  console.log("connected");
+  socket.on("send-user-changes", (delta) => {
+    socket.broadcast.emit("receive-user-changes", delta);
+  });
 });
 
 module.exports = server;

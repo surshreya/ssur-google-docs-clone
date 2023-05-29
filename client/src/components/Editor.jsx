@@ -44,6 +44,7 @@ const Editor = () => {
         toolbar: toolbarOptions,
       },
     });
+
     setQuill(quill);
   }, []);
 
@@ -58,6 +59,42 @@ const Editor = () => {
       socket.disconnect();
     };
   }, []);
+
+  /**
+   * Detect Text Change made by the User/Author
+   */
+  useEffect(() => {
+    if (!socket || !quill) return;
+
+    const handleChange = (delta, oldDelta, source) => {
+      if (source !== "user") return;
+
+      socket.emit("send-user-changes", delta);
+    };
+
+    quill && quill.on("text-change", handleChange);
+
+    return () => {
+      quill && quill.off("text-change", handleChange);
+    };
+  }, [quill, socket]);
+
+  /**
+   * Receive the Text Change made by the User/Author by ALL other users
+   */
+  useEffect(() => {
+    if (!socket || !quill) return;
+
+    const handleChange = (delta) => {
+      quill.updateContents(delta);
+    };
+
+    socket && socket.on("receive-user-changes", handleChange);
+
+    return () => {
+      socket && socket.off("receive-user-changes", handleChange);
+    };
+  }, [quill, socket]);
 
   return (
     <Component>
