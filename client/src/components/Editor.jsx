@@ -105,7 +105,7 @@ const Editor = () => {
 
     socket &&
       socket.once("load-document", (document) => {
-        quill.setContents(document);
+        console.log(document);
         quill.enable();
       });
 
