@@ -2,7 +2,9 @@ import Box from "@mui/material/Box";
 import Quill from "quill";
 import styled from "@emotion/styled";
 import "../style/Editor.css";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { io } from "socket.io-client";
+import { useScrollTrigger } from "@mui/material";
 
 const Component = styled.div`
   background: #f5f5f5;
@@ -29,6 +31,12 @@ var toolbarOptions = [
 ];
 
 const Editor = () => {
+  const [quill, setQuill] = useState();
+  const [socket, setSocket] = useState();
+
+  /**
+   * Instantiate Quill on componentDidMount
+   */
   useEffect(() => {
     const quill = new Quill("#editor", {
       theme: "snow",
@@ -36,6 +44,19 @@ const Editor = () => {
         toolbar: toolbarOptions,
       },
     });
+    setQuill(quill);
+  }, []);
+
+  /**
+   * Setup connection with the Server Side
+   */
+  useEffect(() => {
+    const socket = io("http://localhost:5000");
+    setSocket(socket);
+
+    return () => {
+      socket.disconnect();
+    };
   }, []);
 
   return (
