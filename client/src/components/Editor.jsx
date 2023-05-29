@@ -4,7 +4,7 @@ import styled from "@emotion/styled";
 import "../style/Editor.css";
 import { useEffect, useState } from "react";
 import { io } from "socket.io-client";
-import { useScrollTrigger } from "@mui/material";
+import { useParams } from "react-router-dom";
 
 const Component = styled.div`
   background: #f5f5f5;
@@ -33,7 +33,7 @@ var toolbarOptions = [
 const Editor = () => {
   const [quill, setQuill] = useState();
   const [socket, setSocket] = useState();
-
+  const { id } = useParams();
   /**
    * Instantiate Quill on componentDidMount
    */
@@ -44,7 +44,8 @@ const Editor = () => {
         toolbar: toolbarOptions,
       },
     });
-
+    quill.disable();
+    quill.setText("Loading the document ...");
     setQuill(quill);
   }, []);
 
@@ -95,6 +96,21 @@ const Editor = () => {
       socket && socket.off("receive-user-changes", handleChange);
     };
   }, [quill, socket]);
+
+  /**
+   * Fetch and load a document
+   */
+  useEffect(() => {
+    if (!quill || !socket) return;
+
+    socket &&
+      socket.once("load-document", (document) => {
+        quill.setContents(document);
+        quill.enable();
+      });
+
+    socket && socket.emit("get-document", id);
+  }, [quill, socket, id]);
 
   return (
     <Component>
